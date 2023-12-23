@@ -1,6 +1,6 @@
 const Joi = require('joi');
 
-const cloudEvent = Joi.object({
+const CloudEvent = Joi.object({
     specversion: Joi
         .string()
         .required(),
@@ -31,20 +31,20 @@ const Account = Joi.object({
 });
 
 const Operation = Joi.object({
-    acountId: Joi
+    id: Joi
         .string()
         .required(),
-    name: Joi
-        .string()
-        .required(),
-    type: Joi
-        .string()
-        .required(),
-    date: Joi
-        .date()
-        .required(),
+    // name: Joi
+    //     .string()
+    //     .required(),
+    // type: Joi
+    //     .string()
+    //     .required(),
+    // date: Joi
+    //     .date()
+    //     .required(),
     amount: Joi.number()
         .required()
 });
 
-module.exports = { cloudEvent, Account, Operation }
+module.exports = { CloudEvent, Account, Operation }
