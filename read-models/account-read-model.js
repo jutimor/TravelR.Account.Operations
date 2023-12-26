@@ -1,26 +1,28 @@
-require('dotenv').config();
-const { MongoClient  } = require("mongodb");
 
-class AccountReadModel {
-    async update(account)
-    {
-        const client = new MongoClient(process.env.DB_CONN);
-        await client.connect();
-        const dbName = "Travelr";
-        const collectionName = "accounts";
-        const database = client.db(dbName);
-        const collection = database.collection(collectionName); 
+const { ReadModel  } = require("./read-model");
 
-        try {
-            const filter = { _id: account.id };
+class AccountReadModel extends ReadModel {
+    
+    name;
+    balance = 0;
 
-            const result = collection.replaceOne(filter, {...account}, { upsert: true});
-            return result;
-        } catch (err) {
-            console.error(`Something went wrong trying to find the documents: ${err}\n`);
-        }
+    constructor(aggregateId) {
+        super("accounts", aggregateId)
     }
 
+    async accountOpened(accountOpened) {
+        this.aggregateId = accountOpened.id;
+        this.name = accountOpened.name;
+        this.balance = accountOpened.amount;
+
+        await this.update()
+    }
+
+    async operationAdded(operationAdded) {
+        this.balance += operationAdded.amount;
+        
+        await this.update()
+    }
 }
 
 module.exports = { AccountReadModel }

@@ -3,19 +3,6 @@ const {  CloudEvent, Account, Operation } = require('../events.js');
 const { Aggregate  } = require('./aggregrate.js');
 const { AccountReadModel } = require('../read-models/account-read-model.js')
 
-
-// specversion:"1.0",
-// type:"travelr.account.operation.validated",
-// source:"https://travelr-ui.com",
-// id: uuidv4(),
-// time: new Date(),
-// datacontenttype:"application/json",
-// data:{
-//     id:'e0972ef9-9893-463f-8736-5df266fd5dba',
-//     amount : -15
-// }
-// }
-
 class AccountAggregate extends Aggregate {
    
     async openAccount(account) {
@@ -25,8 +12,9 @@ class AccountAggregate extends Aggregate {
         }
         
         await this.applyAccountOpened(account);
-        const accountReadModel = new AccountReadModel()
-        await accountReadModel.update(this.state);
+        const accountReadModel = new AccountReadModel();
+        await accountReadModel.init();
+        await accountReadModel.accountOpened(account.data);
     }
 
     async addOperation(operation) {
@@ -35,8 +23,9 @@ class AccountAggregate extends Aggregate {
         await publishEvent(operation);
     }
         await this.applyOperationValidated(operation);
-        const accountReadModel = new AccountReadModel()
-        await accountReadModel.update(this.state);
+        const accountReadModel = new AccountReadModel(this.state.aggregateId);
+        await accountReadModel.init();
+        await accountReadModel.operationAdded(operation.data);
     }
     
     async setState() { 
@@ -59,6 +48,7 @@ class AccountAggregate extends Aggregate {
                     await this.applyOperationValidated(parsedCloudEvent);
                     break;
                 default:
+                    console.error('unknown event : ignored', err);
                     break;
             }
         }
