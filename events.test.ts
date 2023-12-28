@@ -1,5 +1,7 @@
 import { v4 as uuid } from 'uuid';
-import { Account, AccountEvent, getAccount } from './events';
+import { AccountEvent, getAccount } from './account-events';
+import { EventStoreDBClient } from '@eventstore/db-client';
+import { appendToStream, readStream } from './core/event-store';
 
 describe('Events definition', () => {
     it('all event types should be defined', () => {
@@ -20,16 +22,16 @@ describe('Events definition', () => {
                 type: 'AccountCredited',
                 data: {
                     accountId: accountId,
-                    OperationAmount: 25,
-                    OperationDate: new Date()
+                    operationAmount: 25,
+                    operationDate: new Date()
                 },
             },
             {
                 type: 'AccountDebited',
                 data: {
                     accountId: accountId,
-                    OperationAmount: 20,
-                    OperationDate: new Date()
+                    operationAmount: 20,
+                    operationDate: new Date()
                 },
             },
             {
@@ -48,7 +50,11 @@ describe('Events definition', () => {
 
   
 describe('Aggregate evaluation', () => {
-    it('Account should be Good', () => {
+
+    const client = EventStoreDBClient
+    .connectionString(`esdb://localhost:2113?tls=false&throwOnAppendFailure=false`);
+    
+    test('Account should be Good', async  () => {
 
         const accountId = uuid();
         const clientId = uuid();
@@ -67,16 +73,16 @@ describe('Aggregate evaluation', () => {
                 type: 'AccountCredited',
                 data: {
                     accountId: accountId,
-                    OperationAmount: 25,
-                    OperationDate: new Date()
+                    operationAmount: 25,
+                    operationDate: new Date()
                 },
             },
             {
                 type: 'AccountDebited',
                 data: {
                     accountId: accountId,
-                    OperationAmount: 20,
-                    OperationDate: new Date()
+                    operationAmount: 20,
+                    operationDate: new Date()
                 },
             },
             {
@@ -87,14 +93,21 @@ describe('Aggregate evaluation', () => {
                 },
             }
         ]
-
-        const accountValue: Account = getAccount(events);
         
+        const streamName = `account-${accountId}`;
+
+        const appendResult = await appendToStream(client, streamName, events); 
+
+        expect(Number(appendResult.nextExpectedRevision)).toBe(events.length - 1);
+  
+        const accountValue = getAccount(events); 
         expect(accountValue).toBeTruthy();
         expect(accountValue.accountId).toBe(accountId);
         expect(accountValue.clientId).toBe(clientId);
         expect(accountValue.accountLabel).toBe('Mon Compte');
         expect(accountValue.balance).toBe(5);
 
+        const streamEvents = await readStream<AccountEvent>(client, streamName);
+        const accountFromDb = getAccount(streamEvents);
     })
 });
