@@ -1,7 +1,18 @@
 import { v4 as uuid } from 'uuid';
-import { AccountEvent, getAccount } from './account-events';
 import { EventStoreDBClient } from '@eventstore/db-client';
-import { appendToStream, readStream } from './core/event-store';
+
+import { AccountEvent,  } from '../src/account-events';
+import { appendToStream, readStream } from '../src/core/event-store';
+import { Account, OperationType } from '../src/account';
+
+
+
+const getAccount = (events: AccountEvent[]): Account => {
+    return events.reduce<Account>((state, event) => {
+        state = Account.evolve(state, event);
+        return state;
+      }, <Account>new Account(undefined!, undefined!, undefined!, undefined!, undefined!,undefined!,undefined!,undefined!));
+    };
 
 describe('Events definition', () => {
     it('all event types should be defined', () => {
@@ -22,6 +33,8 @@ describe('Events definition', () => {
                 type: 'AccountCredited',
                 data: {
                     accountId: accountId,
+                    operationType: OperationType.Credit,
+                    operationLabel: 'First Credit Operation',
                     operationAmount: 25,
                     operationDate: new Date()
                 },
@@ -30,6 +43,8 @@ describe('Events definition', () => {
                 type: 'AccountDebited',
                 data: {
                     accountId: accountId,
+                    operationType: OperationType.Debit,
+                    operationLabel: 'First Debit Operation',
                     operationAmount: 20,
                     operationDate: new Date()
                 },
@@ -73,6 +88,8 @@ describe('Aggregate evaluation', () => {
                 type: 'AccountCredited',
                 data: {
                     accountId: accountId,
+                    operationType: OperationType.Credit,
+                    operationLabel: 'First Credit Operation',
                     operationAmount: 25,
                     operationDate: new Date()
                 },
@@ -81,6 +98,8 @@ describe('Aggregate evaluation', () => {
                 type: 'AccountDebited',
                 data: {
                     accountId: accountId,
+                    operationType: OperationType.Debit,
+                    operationLabel: 'First Debit Operation',
                     operationAmount: 20,
                     operationDate: new Date()
                 },

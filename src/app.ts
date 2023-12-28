@@ -42,13 +42,47 @@ app.post("/account/open", async (req: Request, res: Response) => {
     console.error(e);
     res.status(400).send((e as Error).message)
   }
-  
+});
+
+app.post("/account/credit", async (req: Request, res: Response) => {
+  try {
+    console.log(req.body);
+    await accountService.credit(req.body);
+    res.send();
+  } catch(e)
+  {  
+    console.error(e);
+    res.status(400).send((e as Error).message)
+  }
+});
+
+app.post("/account/debit", async (req: Request, res: Response) => {
+  try {
+    await accountService.debit(req.body);
+    res.send();
+  } catch(e)
+  {  
+    console.error(e);
+    res.status(400).send((e as Error).message)
+  }
 });
 
 app.post("/account/close", async (req: Request, res: Response) => {
   try {
     await accountService.close(req.body);
     res.send();
+  } catch(e)
+  {  
+    console.error(e);
+    res.status(400).send((e as Error).message)
+  }
+});
+
+app.get("/account", async (req: Request, res: Response) => {
+  try {
+    const account = await accountService.get(req.query.accountId as string);
+
+    res.send(account.entity);
   } catch(e)
   {  
     console.error(e);

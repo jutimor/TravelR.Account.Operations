@@ -1,4 +1,3 @@
-import { Aggregate } from "./core";
 import { 
     AccountClosed, 
     AccountEvent, 
@@ -6,6 +5,38 @@ import {
     AccountCredited, 
     AccountDebited } from "./account-events";
 
+export  enum OperationType {
+      Debit = "Debit",
+      Credit = "Credit"
+    }
+
+export class Operation {
+  constructor(
+    private _operationType: OperationType,
+    private _operationCategory: string,
+    private _operationLabel: string,
+    private _operationAmount: number,
+    private _operationDate: Date) {
+  }
+  
+  get operationType() {
+    return this._operationType;
+  }
+
+  get operationCategory() {
+    return this._operationCategory;
+  }
+
+  get operationLabel() {
+    return this._operationLabel;
+  }
+  get operationAmount() {
+    return this._operationAmount;
+  }
+  get operationDate() {
+    return this._operationDate;
+  }
+}
 export class Account  { 
 
   constructor(
@@ -15,8 +46,12 @@ export class Account  {
       private _openingDate: Date,
       private _closureDate: Date,
       private _balance: number,
+      private _operations : Operation[],
       private _status: AccountStatus
-  ) { }
+  ) { 
+    if (!_operations)
+    this._operations = [];
+  }
 
   get accountId() {
       return this._accountId;
@@ -42,6 +77,9 @@ export class Account  {
       return this._balance;
   }
 
+  get operations() {
+    return this._operations;
+}
   get status() {
       return this._status;
   }
@@ -59,9 +97,15 @@ export class Account  {
               return state;
           case "AccountCredited":
               state._balance += event.operationAmount;
+              state._operations.push(new Operation(OperationType.Credit,
+                event.operationType, event.operationLabel, event.operationAmount,event.operationDate
+             ))
               return state;
           case  "AccountDebited":
               state._balance -= event.operationAmount;
+              state._operations.push(new Operation(OperationType.Debit,
+                 event.operationType, event.operationLabel, event.operationAmount,event.operationDate
+              ))
               return state;
           case  "AccountClosed":
               state._closureDate = event.accountClosureDate;
@@ -76,6 +120,7 @@ export class Account  {
 
   public static default = () =>
     new Account(
+      undefined!,
       undefined!,
       undefined!,
       undefined!,
@@ -101,20 +146,25 @@ export class Account  {
     };
   }
 
-  public accountCredited = (accountId: string, operationAmount: number, operationDate: Date)
+  public accountCredited = (accountId: string, operationType: string, operationLabel: string, operationAmount: number, operationDate: Date)
     : AccountCredited => { 
 
     this.assertAccountExist();
     this.assertAccountIsOpen();
 
+    if (!operationDate)
+    {
+      operationDate = new Date()
+    }
+    
     return {
       type: 'AccountCredited',
-      data: { accountId, operationAmount, operationDate },
+      data: { accountId, operationType, operationLabel, operationAmount, operationDate },
     };
   }
     
     
-  public accountDebited = (accountId: string, operationAmount: number, operationDate: Date)
+  public accountDebited = (accountId: string, operationType: string, operationLabel: string, operationAmount: number, operationDate: Date)
     : AccountDebited => {
       
     this.assertAccountExist();
@@ -122,7 +172,7 @@ export class Account  {
 
     return {
       type: 'AccountDebited',
-      data: { accountId, operationAmount, operationDate },
+      data: { accountId, operationType, operationLabel, operationAmount, operationDate },
     };
   }
 
@@ -155,7 +205,7 @@ export class Account  {
   }
 
   private assertAccountIsOpen = (): void => {
-    if (!this._closureDate) {
+    if (this._closureDate) {
       throw new Error(AccountErrors.ACCOUNT_IS_CLOSED);
     }
   }
