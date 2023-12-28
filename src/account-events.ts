@@ -1,4 +1,4 @@
-import { Account } from "./account";
+import { Account, OperationType } from "./account";
 import { Event } from './core';
 
 type AccountOpened = Event<
@@ -15,7 +15,8 @@ type AccountCredited = Event<
   'AccountCredited',
   {
     accountId: string;
-    operationType: string;
+    operationType: OperationType;
+    operationCategory: string;
     operationLabel: string;
     operationAmount: number;
     operationDate: Date;
@@ -26,7 +27,8 @@ type AccountDebited = Event<
   'AccountDebited',
   {
     accountId: string;
-    operationType: string;
+    operationType: OperationType;
+    operationCategory: string;
     operationLabel: string;
     operationAmount: number;
     operationDate: Date;

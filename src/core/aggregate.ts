@@ -1,4 +1,4 @@
-import { Event } from "./event";
+import { Event } from ".";
 
 export abstract class Aggregate<E extends Event> {
     #uncommitedEvents: Event[] = [];

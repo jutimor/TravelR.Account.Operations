@@ -34,6 +34,7 @@ describe('Events definition', () => {
                 data: {
                     accountId: accountId,
                     operationType: OperationType.Credit,
+                    operationCategory: "Category",
                     operationLabel: 'First Credit Operation',
                     operationAmount: 25,
                     operationDate: new Date()
@@ -44,6 +45,7 @@ describe('Events definition', () => {
                 data: {
                     accountId: accountId,
                     operationType: OperationType.Debit,
+                    operationCategory: "Category",
                     operationLabel: 'First Debit Operation',
                     operationAmount: 20,
                     operationDate: new Date()
@@ -66,8 +68,15 @@ describe('Events definition', () => {
   
 describe('Aggregate evaluation', () => {
 
+    let eventDbConnexionString : string;
+    if (!process.env.EVENT_DB_CONN)
+    {
+        throw Error("No Mongo connexion string");
+    }
+    eventDbConnexionString = process.env.EVENT_DB_CONN;
+    
     const client = EventStoreDBClient
-    .connectionString(`esdb://localhost:2113?tls=false&throwOnAppendFailure=false`);
+    .connectionString(eventDbConnexionString);
     
     test('Account should be Good', async  () => {
 
@@ -90,6 +99,7 @@ describe('Aggregate evaluation', () => {
                     accountId: accountId,
                     operationType: OperationType.Credit,
                     operationLabel: 'First Credit Operation',
+                    operationCategory: "Category",
                     operationAmount: 25,
                     operationDate: new Date()
                 },
@@ -100,6 +110,7 @@ describe('Aggregate evaluation', () => {
                     accountId: accountId,
                     operationType: OperationType.Debit,
                     operationLabel: 'First Debit Operation',
+                    operationCategory: "Category",
                     operationAmount: 20,
                     operationDate: new Date()
                 },

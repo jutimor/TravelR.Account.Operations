@@ -1,4 +1,4 @@
-import { Account } from "./account";
+import { Account, OperationType } from "./account";
 import { AccountEvent } from "./account-events";
 import { 
     ApplicationService, 
@@ -14,25 +14,33 @@ export type OpenAccount = {
 
 export type CreditAccount = {
     accountId: string;
-    operationType: string;
+    operationType: OperationType;
+    operationCategory: string;
     operationLabel: string;
     operationAmount: number;
-    now: Date;
+    operationDate: Date;
 };
 
 
 export type DebitAccount = {
   accountId: string;
-  operationType: string;
+  operationType: OperationType;
+  operationCategory: string;
   operationLabel: string;
   operationAmount: number;
-  now: Date;
+  operationDate: Date;
 };
 
 export type CloseAccount = {
     accountId: string;
     now: Date;
 };
+
+export type AccountCommand = 
+OpenAccount |
+CreditAccount |
+DebitAccount |
+CloseAccount;
 
 export class AccountService extends ApplicationService<
   Account,
@@ -51,14 +59,14 @@ export class AccountService extends ApplicationService<
         account.open(accountId, clientId, accountLabel, now)
     );
 
-  public credit = ({ accountId, operationType, operationLabel, operationAmount, now }: CreditAccount) =>
+  public credit = ({ accountId, operationType, operationCategory, operationLabel, operationAmount, operationDate }: CreditAccount) =>
     this.on(accountId, (account) =>
-        account.accountCredited(accountId, operationType, operationLabel, operationAmount, now)
+        account.accountCredited(accountId, operationType, operationCategory, operationLabel, operationAmount, operationDate)
     );
 
-  public debit = ({ accountId, operationType, operationLabel, operationAmount, now }: DebitAccount) =>
+  public debit = ({ accountId, operationType, operationCategory, operationLabel, operationAmount, operationDate }: DebitAccount) =>
     this.on(accountId, (account) =>
-        account.accountDebited(accountId, operationType, operationLabel, operationAmount, now)
+        account.accountDebited(accountId, operationType, operationCategory, operationLabel, operationAmount,  operationDate)
     );
 
   public close = ({ accountId, now }: CloseAccount) =>

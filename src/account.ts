@@ -5,7 +5,7 @@ import {
     AccountCredited, 
     AccountDebited } from "./account-events";
 
-export  enum OperationType {
+export enum OperationType {
       Debit = "Debit",
       Credit = "Credit"
     }
@@ -37,6 +37,7 @@ export class Operation {
     return this._operationDate;
   }
 }
+
 export class Account  { 
 
   constructor(
@@ -98,13 +99,13 @@ export class Account  {
           case "AccountCredited":
               state._balance += event.operationAmount;
               state._operations.push(new Operation(OperationType.Credit,
-                event.operationType, event.operationLabel, event.operationAmount,event.operationDate
+                event.operationCategory, event.operationLabel, event.operationAmount,event.operationDate
              ))
               return state;
           case  "AccountDebited":
               state._balance -= event.operationAmount;
               state._operations.push(new Operation(OperationType.Debit,
-                 event.operationType, event.operationLabel, event.operationAmount,event.operationDate
+                 event.operationCategory, event.operationLabel, event.operationAmount,event.operationDate
               ))
               return state;
           case  "AccountClosed":
@@ -146,8 +147,13 @@ export class Account  {
     };
   }
 
-  public accountCredited = (accountId: string, operationType: string, operationLabel: string, operationAmount: number, operationDate: Date)
-    : AccountCredited => { 
+  public accountCredited = (
+    accountId: string, 
+    operationType: OperationType, 
+    operationCategory: string, 
+    operationLabel: string, 
+    operationAmount: number, 
+    operationDate: Date) : AccountCredited => { 
 
     this.assertAccountExist();
     this.assertAccountIsOpen();
@@ -159,12 +165,12 @@ export class Account  {
     
     return {
       type: 'AccountCredited',
-      data: { accountId, operationType, operationLabel, operationAmount, operationDate },
+      data: { accountId, operationType, operationCategory, operationLabel, operationAmount, operationDate },
     };
   }
     
     
-  public accountDebited = (accountId: string, operationType: string, operationLabel: string, operationAmount: number, operationDate: Date)
+  public accountDebited = (accountId: string, operationType: OperationType, operationCategory: string, operationLabel: string, operationAmount: number, operationDate: Date)
     : AccountDebited => {
       
     this.assertAccountExist();
@@ -172,7 +178,7 @@ export class Account  {
 
     return {
       type: 'AccountDebited',
-      data: { accountId, operationType, operationLabel, operationAmount, operationDate },
+      data: { accountId, operationType, operationCategory, operationLabel, operationAmount, operationDate },
     };
   }
 
@@ -211,7 +217,7 @@ export class Account  {
   }
 }
 
-enum AccountStatus {
+export enum AccountStatus {
   Opened = 'Opened',
   Closed = 'Closed',
 }
